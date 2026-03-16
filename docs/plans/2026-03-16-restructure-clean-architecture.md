@@ -1,47 +1,47 @@
-# Restructure Clean Architecture Implementation Plan
+# クリーンアーキテクチャ再構成 実装計画
 
-> **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
+> **Claude向け:** 必須サブスキル: superpowers:executing-plans を使用してタスクを1つずつ実行すること。
 
-**Goal:** Reorganize the existing tech-memo Go project into a layered directory structure under `internal/`, with clean separation of Domain, Application, Adapter, and Infrastructure.
+**目標:** 既存のtech-memo Goプロジェクトを `internal/` 配下の階層構造に再編成し、Domain・Application・Adapter・Infrastructure を明確に分離する。
 
-**Architecture:** The new structure places all code under `internal/` with explicit layers: `domain` (entities), `application` (use case interfaces + interacters + gateway interfaces), `adapter` (controllers, presenters, gateway implementations), `infrastructure` (HTTP server, DI, middleware). The entry point moves to `cmd/main.go`.
+**アーキテクチャ:** 全コードを `internal/` 配下に置き、明示的な層構成とする。`domain`（エンティティ）、`application`（ユースケースIF・インタラクター・ゲートウェイIF）、`adapter`（コントローラー・プレゼンター・ゲートウェイ実装）、`infrastructure`（HTTPサーバー・DI・ミドルウェア）。エントリーポイントは `cmd/main.go` に移動する。
 
-**Tech Stack:** Go 1.22, SQLite (`github.com/mattn/go-sqlite3`), UUID (`github.com/google/uuid`), standard `net/http`
+**技術スタック:** Go 1.22、SQLite（`github.com/mattn/go-sqlite3`）、UUID（`github.com/google/uuid`）、標準ライブラリ `net/http`
 
 ---
 
-## Layer Responsibilities
+## 各層の責務
 
-| Layer | Package path | Role |
+| 層 | パッケージパス | 役割 |
 |---|---|---|
-| Domain | `internal/domain` | Entity + validation. No external dependencies. |
-| Application/usecase | `internal/application/usecase` | Use case **interfaces** (I = Interface marker) |
-| Application/interacter | `internal/application/interacter` | Use case **implementations** (calls gateway interface) |
-| Application/gateway | `internal/application/gateway` | Repository/gateway **interfaces** |
-| Adapter/controller | `internal/adapter/controller` | Parse HTTP input → call use case |
-| Adapter/presenter | `internal/adapter/presenter` | Write JSON HTTP response |
-| Adapter/gateway | `internal/adapter/gateway` | SQLite implementation of gateway interface |
-| Infrastructure/api | `internal/infrastructure/api` | HTTP wiring: handler, router, DI |
-| Infrastructure/middleware | `internal/infrastructure/middleware` | HTTP middleware (auth stub) |
-| Helper/util | `internal/helper/util` | Shared utilities |
-| cmd | `cmd/` | Entry point only |
+| Domain | `internal/domain` | エンティティ＋バリデーション。外部依存なし。 |
+| Application/usecase | `internal/application/usecase` | ユースケース**インターフェース**（I = Interface の目印） |
+| Application/interacter | `internal/application/interacter` | ユースケース**実装**（ゲートウェイIFを呼び出す） |
+| Application/gateway | `internal/application/gateway` | リポジトリ/ゲートウェイ**インターフェース** |
+| Adapter/controller | `internal/adapter/controller` | HTTPリクエスト解析 → ユースケース呼び出し |
+| Adapter/presenter | `internal/adapter/presenter` | JSONレスポンス生成 |
+| Adapter/gateway | `internal/adapter/gateway` | ゲートウェイIFのSQLite実装 |
+| Infrastructure/api | `internal/infrastructure/api` | HTTP配線: ハンドラー・ルーター・DI |
+| Infrastructure/middleware | `internal/infrastructure/middleware` | HTTPミドルウェア（認証stub） |
+| Helper/util | `internal/helper/util` | 共通ユーティリティ |
+| cmd | `cmd/` | エントリーポイントのみ |
 
-## Dependency Rule
+## 依存関係ルール
 
 ```
 cmd → infrastructure/api → adapter/* → application/* → domain
                                       ↑
-                         adapter/gateway implements application/gateway (interface)
+                         adapter/gateway が application/gateway（IF）を実装
 ```
 
 ---
 
-## Task 1: Create `internal/domain/memo.go`
+## タスク1: `internal/domain/memo.go` の作成
 
-**Files:**
-- Create: `internal/domain/memo.go`
+**ファイル:**
+- 作成: `internal/domain/memo.go`
 
-**Step 1: Create the file** (copy from `domain/memo.go`, change package path only — content is unchanged)
+**手順1: ファイル作成**（`domain/memo.go` からコピー。パッケージパスのみ変更、内容は同一）
 
 ```go
 // internal/domain/memo.go
@@ -77,25 +77,25 @@ func (m *Memo) Validate() error {
 }
 ```
 
-**Step 2: Verify no syntax errors**
+**手順2: 構文エラーがないことを確認**
 
 ```bash
 cd C:/Users/PC1043/Documents/tech-memo
 go vet ./internal/domain/...
 ```
 
-Expected: no output (success)
+期待値: 出力なし（成功）
 
 ---
 
-## Task 2: Create `internal/application/gateway/memo_gateway.go`
+## タスク2: `internal/application/gateway/memo_gateway.go` の作成
 
-**Files:**
-- Create: `internal/application/gateway/memo_gateway.go`
+**ファイル:**
+- 作成: `internal/application/gateway/memo_gateway.go`
 
-This replaces `domain/memo_repository.go`. The interface is renamed `MemoGateway` (was `MemoRepository`) to align with the gateway pattern.
+`domain/memo_repository.go` の代替。インターフェース名を `MemoGateway`（旧: `MemoRepository`）に変更し、ゲートウェイパターンに合わせる。
 
-**Step 1: Create the file**
+**手順1: ファイル作成**
 
 ```go
 // internal/application/gateway/memo_gateway.go
@@ -114,24 +114,24 @@ type MemoGateway interface {
 }
 ```
 
-**Step 2: Verify**
+**手順2: 確認**
 
 ```bash
 go vet ./internal/application/gateway/...
 ```
 
-Expected: no output
+期待値: 出力なし
 
 ---
 
-## Task 3: Create `internal/application/usecase/memo_usecase.go`
+## タスク3: `internal/application/usecase/memo_usecase.go` の作成
 
-**Files:**
-- Create: `internal/application/usecase/memo_usecase.go`
+**ファイル:**
+- 作成: `internal/application/usecase/memo_usecase.go`
 
-This is a **new** file — the use case interface that the interacter will implement.
+**新規ファイル** — インタラクターが実装するユースケースインターフェース。
 
-**Step 1: Create the file**
+**手順1: ファイル作成**
 
 ```go
 // internal/application/usecase/memo_usecase.go
@@ -150,24 +150,24 @@ type MemoUseCase interface {
 }
 ```
 
-**Step 2: Verify**
+**手順2: 確認**
 
 ```bash
 go vet ./internal/application/usecase/...
 ```
 
-Expected: no output
+期待値: 出力なし
 
 ---
 
-## Task 4: Create `internal/application/interacter/memo_interacter.go`
+## タスク4: `internal/application/interacter/memo_interacter.go` の作成
 
-**Files:**
-- Create: `internal/application/interacter/memo_interacter.go`
+**ファイル:**
+- 作成: `internal/application/interacter/memo_interacter.go`
 
-This replaces `usecase/memo_usecase.go`. Depends only on `application/gateway` (interface) and `domain`.
+`usecase/memo_usecase.go` の代替。`application/gateway`（IF）と `domain` にのみ依存する。
 
-**Step 1: Create the file**
+**手順1: ファイル作成**
 
 ```go
 // internal/application/interacter/memo_interacter.go
@@ -268,25 +268,25 @@ func (uc *MemoInteracter) Delete(id string) error {
 }
 ```
 
-**Step 2: Verify compile**
+**手順2: コンパイル確認**
 
 ```bash
 go vet ./internal/application/interacter/...
 ```
 
-Expected: no output
+期待値: 出力なし
 
 ---
 
-## Task 5: Create `internal/adapter/gateway/sqlite_memo_gateway.go`
+## タスク5: `internal/adapter/gateway/sqlite_memo_gateway.go` の作成
 
-**Files:**
-- Create: `internal/adapter/gateway/sqlite_memo_gateway.go`
+**ファイル:**
+- 作成: `internal/adapter/gateway/sqlite_memo_gateway.go`
 
-This replaces `infrastructure/sqlite_memo_repository.go`. Implements `application/gateway.MemoGateway`.
-Note: Both `application/gateway` and `adapter/gateway` use package name `gateway` — import alias is needed in files using both.
+`infrastructure/sqlite_memo_repository.go` の代替。`application/gateway.MemoGateway` を実装する。
+注意: `application/gateway` と `adapter/gateway` は同じパッケージ名 `gateway` を使用するため、両方をimportするファイルではエイリアスが必要。
 
-**Step 1: Create the file**
+**手順1: ファイル作成**
 
 ```go
 // internal/adapter/gateway/sqlite_memo_gateway.go
@@ -302,7 +302,7 @@ import (
 	"tech-memo/internal/domain"
 )
 
-// compile-time interface check
+// コンパイル時インターフェース適合確認
 var _ appgateway.MemoGateway = (*SQLiteMemoGateway)(nil)
 
 type SQLiteMemoGateway struct {
@@ -459,24 +459,24 @@ func (r *SQLiteMemoGateway) Delete(id string) error {
 }
 ```
 
-**Step 2: Verify (interface check will catch any mismatch)**
+**手順2: 確認**（インターフェース適合チェックが不一致を検出する）
 
 ```bash
 go vet ./internal/adapter/gateway/...
 ```
 
-Expected: no output
+期待値: 出力なし
 
 ---
 
-## Task 6: Create `internal/adapter/presenter/memo_presenter.go`
+## タスク6: `internal/adapter/presenter/memo_presenter.go` の作成
 
-**Files:**
-- Create: `internal/adapter/presenter/memo_presenter.go`
+**ファイル:**
+- 作成: `internal/adapter/presenter/memo_presenter.go`
 
-Extracted from `interface/handler/memo_handler.go` — the JSON write helpers become a standalone package.
+`interface/handler/memo_handler.go` から抽出 — JSONレスポンス書き込みヘルパーを独立したパッケージとする。
 
-**Step 1: Create the file**
+**手順1: ファイル作成**
 
 ```go
 // internal/adapter/presenter/memo_presenter.go
@@ -498,24 +498,24 @@ func WriteError(w http.ResponseWriter, status int, msg string) {
 }
 ```
 
-**Step 2: Verify**
+**手順2: 確認**
 
 ```bash
 go vet ./internal/adapter/presenter/...
 ```
 
-Expected: no output
+期待値: 出力なし
 
 ---
 
-## Task 7: Create `internal/adapter/controller/memo_controller.go`
+## タスク7: `internal/adapter/controller/memo_controller.go` の作成
 
-**Files:**
-- Create: `internal/adapter/controller/memo_controller.go`
+**ファイル:**
+- 作成: `internal/adapter/controller/memo_controller.go`
 
-The controller parses HTTP input and calls the use case. It returns domain results (or errors) — it does NOT write the HTTP response (that's the presenter's job).
+コントローラーはHTTPリクエストを解析してユースケースを呼び出す。ドメイン結果（またはエラー）を返す。HTTPレスポンスの書き込みはしない（それはプレゼンターの役割）。
 
-**Step 1: Create the file**
+**手順1: ファイル作成**
 
 ```go
 // internal/adapter/controller/memo_controller.go
@@ -597,24 +597,24 @@ func extractID(path string) string {
 }
 ```
 
-**Step 2: Verify**
+**手順2: 確認**
 
 ```bash
 go vet ./internal/adapter/controller/...
 ```
 
-Expected: no output
+期待値: 出力なし
 
 ---
 
-## Task 8: Create `internal/infrastructure/api/handler.go`
+## タスク8: `internal/infrastructure/api/handler.go` の作成
 
-**Files:**
-- Create: `internal/infrastructure/api/handler.go`
+**ファイル:**
+- 作成: `internal/infrastructure/api/handler.go`
 
-The HTTP handler orchestrates controller (input) and presenter (output).
+HTTPハンドラーはコントローラー（入力）とプレゼンター（出力）を協調させる。
 
-**Step 1: Create the file**
+**手順1: ファイル作成**
 
 ```go
 // internal/infrastructure/api/handler.go
@@ -693,22 +693,22 @@ func (h *MemoHandler) Delete(w http.ResponseWriter, r *http.Request) {
 }
 ```
 
-**Step 2: Verify**
+**手順2: 確認**
 
 ```bash
 go vet ./internal/infrastructure/api/...
 ```
 
-Expected: may fail until route.go and di.go exist in the same package — proceed to next task.
+期待値: route.go と di.go が同パッケージに存在するまで失敗する可能性あり — 次のタスクに進む。
 
 ---
 
-## Task 9: Create `internal/infrastructure/api/route.go`
+## タスク9: `internal/infrastructure/api/route.go` の作成
 
-**Files:**
-- Create: `internal/infrastructure/api/route.go`
+**ファイル:**
+- 作成: `internal/infrastructure/api/route.go`
 
-**Step 1: Create the file**
+**手順1: ファイル作成**
 
 ```go
 // internal/infrastructure/api/route.go
@@ -757,14 +757,14 @@ func newRouter(h *MemoHandler) http.Handler {
 
 ---
 
-## Task 10: Create `internal/infrastructure/api/di.go`
+## タスク10: `internal/infrastructure/api/di.go` の作成
 
-**Files:**
-- Create: `internal/infrastructure/api/di.go`
+**ファイル:**
+- 作成: `internal/infrastructure/api/di.go`
 
-The DI container wires all layers together. This is the only file that imports across all layers.
+DIコンテナで全層を接続する。全層をまたいでimportするのはこのファイルのみ。
 
-**Step 1: Create the file**
+**手順1: ファイル作成**
 
 ```go
 // internal/infrastructure/api/di.go
@@ -791,24 +791,24 @@ func BuildApp(dbPath string) (http.Handler, error) {
 }
 ```
 
-**Step 2: Verify whole api package**
+**手順2: apiパッケージ全体の確認**
 
 ```bash
 go vet ./internal/infrastructure/api/...
 ```
 
-Expected: no output
+期待値: 出力なし
 
 ---
 
-## Task 11: Create `internal/infrastructure/middleware/auth.go`
+## タスク11: `internal/infrastructure/middleware/auth.go` の作成
 
-**Files:**
-- Create: `internal/infrastructure/middleware/auth.go`
+**ファイル:**
+- 作成: `internal/infrastructure/middleware/auth.go`
 
-Placeholder — no auth logic yet, just the package and a stub type.
+プレースホルダー — 認証ロジックなし。パッケージとstubのみ。
 
-**Step 1: Create the file**
+**手順1: ファイル作成**
 
 ```go
 // internal/infrastructure/middleware/auth.go
@@ -816,7 +816,7 @@ package middleware
 
 import "net/http"
 
-// AuthMiddleware is a stub for future authentication middleware.
+// AuthMiddleware は将来の認証ミドルウェアのためのstubです。
 func AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		next.ServeHTTP(w, r)
@@ -826,14 +826,14 @@ func AuthMiddleware(next http.Handler) http.Handler {
 
 ---
 
-## Task 12: Create `internal/helper/util/util.go`
+## タスク12: `internal/helper/util/util.go` の作成
 
-**Files:**
-- Create: `internal/helper/util/util.go`
+**ファイル:**
+- 作成: `internal/helper/util/util.go`
 
-Placeholder package for shared utilities.
+共通ユーティリティのプレースホルダーパッケージ。
 
-**Step 1: Create the file**
+**手順1: ファイル作成**
 
 ```go
 // internal/helper/util/util.go
@@ -842,12 +842,12 @@ package util
 
 ---
 
-## Task 13: Create `cmd/main.go`
+## タスク13: `cmd/main.go` の作成
 
-**Files:**
-- Create: `cmd/main.go`
+**ファイル:**
+- 作成: `cmd/main.go`
 
-**Step 1: Create the file**
+**手順1: ファイル作成**
 
 ```go
 // cmd/main.go
@@ -890,49 +890,49 @@ func getEnv(key, defaultVal string) string {
 
 ---
 
-## Task 14: Verify full build compiles
+## タスク14: ビルド全体の確認
 
-**Step 1: Run go build**
+**手順1: go build 実行**
 
 ```bash
 cd C:/Users/PC1043/Documents/tech-memo
 go build ./...
 ```
 
-Expected: no errors. If errors occur, fix import paths before proceeding.
+期待値: エラーなし。エラーが出た場合はimportパスを修正してから進む。
 
-**Step 2: Run go vet on all new packages**
+**手順2: 全新規パッケージの go vet 実行**
 
 ```bash
 go vet ./cmd/... ./internal/...
 ```
 
-Expected: no output
+期待値: 出力なし
 
 ---
 
-## Task 15: Delete old files
+## タスク15: 旧ファイルの削除
 
-Only delete after Task 14 passes with no errors.
+タスク14がエラーなしで通過してから削除すること。
 
-**Step 1: Remove old top-level packages**
+**手順1: 旧トップレベルパッケージを削除**
 
 ```bash
 rm -rf domain/ usecase/ infrastructure/ interface/
 rm main.go
 ```
 
-**Step 2: Verify build still passes**
+**手順2: ビルドがまだ通ることを確認**
 
 ```bash
 go build ./...
 ```
 
-Expected: no errors
+期待値: エラーなし
 
-**Step 3: Update Makefile to use new entry point**
+**手順3: Makefileのエントリーポイントを更新**
 
-Modify `Makefile` — change the build/run target from `go run .` or `go run main.go` to:
+`Makefile` を修正 — build/runターゲットを `go run .` または `go run main.go` から以下に変更:
 
 ```makefile
 run:
@@ -942,30 +942,30 @@ build:
 	go build -o tech-memo ./cmd/main.go
 ```
 
-**Step 4: Smoke test**
+**手順4: スモークテスト**
 
 ```bash
-# Start the server in one terminal
+# ターミナル1でサーバー起動
 go run ./cmd/main.go
 
-# In another terminal, verify health check
+# ターミナル2でヘルスチェック確認
 curl http://localhost:8080/health
-# Expected: {"status":"ok"}
+# 期待値: {"status":"ok"}
 
-# Create a memo
+# メモ作成
 curl -X POST http://localhost:8080/api/memos \
   -H "Content-Type: application/json" \
   -d '{"title":"test","content":"hello world","tags":["go"],"language":"go"}'
-# Expected: 201 with memo object
+# 期待値: 201 + メモオブジェクト
 
-# List all
+# 全件取得
 curl http://localhost:8080/api/memos
-# Expected: 200 with array containing the created memo
+# 期待値: 200 + 作成したメモを含む配列
 ```
 
 ---
 
-## Final Directory Structure
+## 最終ディレクトリ構成
 
 ```
 tech-memo/
