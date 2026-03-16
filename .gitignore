@@ -1,0 +1,13 @@
+# Binaries
+tech-memo
+tech-memo.exe
+
+# SQLite DB
+*.db
+
+# Go build cache
+/vendor/
+
+# IDE
+.vscode/
+.idea/
