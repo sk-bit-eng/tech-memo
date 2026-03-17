@@ -6,7 +6,7 @@ import (
 
 	dbgateway "tech-memo/internal/adapter/gateway"
 	"tech-memo/internal/adapter/controller"
-	"tech-memo/internal/application/interacter"
+	"tech-memo/internal/application/usecase"
 )
 
 func BuildApp(dbPath string) (http.Handler, error) {
@@ -15,7 +15,7 @@ func BuildApp(dbPath string) (http.Handler, error) {
 		return nil, err
 	}
 
-	uc := interacter.NewMemoInteracter(gw)
+	uc := usecase.NewMemoInteracter(gw)
 	ctrl := controller.NewMemoController(uc)
 	h := NewMemoHandler(ctrl)
 	return newRouter(h), nil
