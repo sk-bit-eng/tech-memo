@@ -11,3 +11,6 @@ tech-memo.exe
 # IDE
 .vscode/
 .idea/
+
+# Local docs (plans, memos)
+docs/

@@ -12,16 +12,14 @@ import (
 
 func main() {
 	port := getEnv("PORT", "8080")
-	dbPath := getEnv("DB_PATH", "tech_memo.db")
 
-	handler, err := api.BuildApp(dbPath)
+	handler, err := api.NewHandler()
 	if err != nil {
 		log.Fatalf("failed to initialize app: %v", err)
 	}
 
 	addr := fmt.Sprintf(":%s", port)
-	log.Printf("Server starting on http://localhost%s", addr)
-	log.Printf("Database: %s", dbPath)
+	log.Printf("Test Server starting on http://localhost%s", addr)
 
 	if err := http.ListenAndServe(addr, handler); err != nil {
 		log.Fatalf("server error: %v", err)
