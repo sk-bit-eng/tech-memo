@@ -28,7 +28,7 @@ func newRouter(db *sql.DB) http.Handler {
 
 	r.GET("/", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
-			"message": "pong",
+			"message": "teck-memo server is running",
 		})
 	})
 
