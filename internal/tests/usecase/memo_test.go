@@ -1,4 +1,4 @@
-// internal/application/usecase/memo_test.go
+// internal/tests/usecase/memo_test.go
 package usecase_test
 
 import (

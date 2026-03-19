@@ -1,4 +1,4 @@
-// internal/application/usecase/todo_test.go
+// internal/tests/usecase/todo_test.go
 package usecase_test
 
 import (
