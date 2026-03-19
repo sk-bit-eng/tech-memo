@@ -4,6 +4,7 @@ package usecase_test
 import (
 	"testing"
 
+	"tech-memo/internal/application/dto"
 	"tech-memo/internal/application/usecase"
 	"tech-memo/internal/domain"
 )
@@ -49,7 +50,7 @@ func TestTodoCreate_SetsIDAndTimestamps(t *testing.T) {
 	gw := newMockTodoGateway()
 	uc := usecase.NewTodoInteracter(gw)
 
-	todo, err := uc.Create(usecase.CreateTodoInput{
+	todo, err := uc.Create(dto.CreateTodoInput{
 		UserID:  "user1",
 		Title:   "タスク",
 		Content: "内容",

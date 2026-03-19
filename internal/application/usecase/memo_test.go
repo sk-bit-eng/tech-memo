@@ -4,6 +4,7 @@ package usecase_test
 import (
 	"testing"
 
+	"tech-memo/internal/application/dto"
 	"tech-memo/internal/application/usecase"
 	"tech-memo/internal/domain"
 )
@@ -51,7 +52,7 @@ func TestMemoCreate_SetsIDAndTimestamps(t *testing.T) {
 	gw := newMockMemoGateway()
 	uc := usecase.NewMemoInteracter(gw)
 
-	memo, err := uc.Create(usecase.CreateMemoInput{
+	memo, err := uc.Create(dto.CreateMemoInput{
 		UserID:  "user1",
 		Title:   "タイトル",
 		Content: "内容",
@@ -130,7 +131,7 @@ func TestMemoUpdate_NotFound(t *testing.T) {
 	gw := newMockMemoGateway()
 	uc := usecase.NewMemoInteracter(gw)
 
-	_, err := uc.Update(usecase.UpdateMemoInput{ID: "not-exist"})
+	_, err := uc.Update(dto.UpdateMemoInput{ID: "not-exist"})
 
 	if err == nil {
 		t.Error("expected error for not found")

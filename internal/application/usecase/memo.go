@@ -7,28 +7,9 @@ import (
 
 	"github.com/google/uuid"
 	appgateway "tech-memo/internal/application/gateway"
+	"tech-memo/internal/application/dto"
 	"tech-memo/internal/domain"
 )
-
-// ---- DTOs ----
-
-type CreateMemoInput struct {
-	UserID     string
-	Title      string
-	Content    string
-	CategoryID string
-	Parameters []domain.Parameter
-	IsPinned   bool
-}
-
-type UpdateMemoInput struct {
-	ID         string
-	Title      string
-	Content    string
-	CategoryID string
-	Parameters []domain.Parameter
-	IsPinned   bool
-}
 
 // ---- インターフェース ----
 
@@ -37,8 +18,8 @@ type MemoUseCase interface {
 	ListByUser(userID string) ([]*domain.Memo, error)
 	ListByCategory(userID, categoryID string) ([]*domain.Memo, error)
 	Search(userID, query string) ([]*domain.Memo, error)
-	Create(input CreateMemoInput) (*domain.Memo, error)
-	Update(input UpdateMemoInput) (*domain.Memo, error)
+	Create(input dto.CreateMemoInput) (*domain.Memo, error)
+	Update(input dto.UpdateMemoInput) (*domain.Memo, error)
 	Delete(id string) error
 	TogglePin(id string) (*domain.Memo, error)
 }
@@ -76,7 +57,7 @@ func (uc *memoInteracter) Search(userID, query string) ([]*domain.Memo, error) {
 	return uc.gw.Search(userID, query)
 }
 
-func (uc *memoInteracter) Create(input CreateMemoInput) (*domain.Memo, error) {
+func (uc *memoInteracter) Create(input dto.CreateMemoInput) (*domain.Memo, error) {
 	now := time.Now()
 	memo := &domain.Memo{
 		ID:         uuid.New().String(),
@@ -95,7 +76,7 @@ func (uc *memoInteracter) Create(input CreateMemoInput) (*domain.Memo, error) {
 	return memo, nil
 }
 
-func (uc *memoInteracter) Update(input UpdateMemoInput) (*domain.Memo, error) {
+func (uc *memoInteracter) Update(input dto.UpdateMemoInput) (*domain.Memo, error) {
 	memo, err := uc.gw.FindByID(input.ID)
 	if err != nil {
 		return nil, err

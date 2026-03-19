@@ -7,30 +7,9 @@ import (
 
 	"github.com/google/uuid"
 	appgateway "tech-memo/internal/application/gateway"
+	"tech-memo/internal/application/dto"
 	"tech-memo/internal/domain"
 )
-
-// ---- DTOs ----
-
-type CreateTodoInput struct {
-	UserID     string
-	Title      string
-	Content    string
-	CategoryID string
-	Parameters []domain.Parameter
-	IsPinned   bool
-	DueAt      *time.Time
-}
-
-type UpdateTodoInput struct {
-	ID         string
-	Title      string
-	Content    string
-	CategoryID string
-	Parameters []domain.Parameter
-	IsPinned   bool
-	DueAt      *time.Time
-}
 
 // ---- インターフェース ----
 
@@ -41,8 +20,8 @@ type TodoUseCase interface {
 	ListPending(userID string) ([]*domain.Todo, error)
 	ListCompleted(userID string) ([]*domain.Todo, error)
 	Search(userID, query string) ([]*domain.Todo, error)
-	Create(input CreateTodoInput) (*domain.Todo, error)
-	Update(input UpdateTodoInput) (*domain.Todo, error)
+	Create(input dto.CreateTodoInput) (*domain.Todo, error)
+	Update(input dto.UpdateTodoInput) (*domain.Todo, error)
 	Complete(id string) error
 	Incomplete(id string) error
 	Delete(id string) error
@@ -90,7 +69,7 @@ func (uc *todoInteracter) Search(userID, query string) ([]*domain.Todo, error) {
 	return uc.gw.Search(userID, query)
 }
 
-func (uc *todoInteracter) Create(input CreateTodoInput) (*domain.Todo, error) {
+func (uc *todoInteracter) Create(input dto.CreateTodoInput) (*domain.Todo, error) {
 	now := time.Now()
 	todo := &domain.Todo{
 		ID:         uuid.New().String(),
@@ -110,7 +89,7 @@ func (uc *todoInteracter) Create(input CreateTodoInput) (*domain.Todo, error) {
 	return todo, nil
 }
 
-func (uc *todoInteracter) Update(input UpdateTodoInput) (*domain.Todo, error) {
+func (uc *todoInteracter) Update(input dto.UpdateTodoInput) (*domain.Todo, error) {
 	todo, err := uc.gw.FindByID(input.ID)
 	if err != nil {
 		return nil, err
