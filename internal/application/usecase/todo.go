@@ -5,14 +5,14 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/google/uuid"
-	appgateway "tech-memo/internal/application/gateway"
 	"tech-memo/internal/application/dto"
+	appgateway "tech-memo/internal/application/gateway"
 	"tech-memo/internal/domain"
+
+	"github.com/google/uuid"
 )
 
 // ---- インターフェース ----
-
 type TodoUseCase interface {
 	GetByID(id string) (*domain.Todo, error)
 	ListByUser(userID string) ([]*domain.Todo, error)
@@ -28,17 +28,18 @@ type TodoUseCase interface {
 	TogglePin(id string) (*domain.Todo, error)
 }
 
-// ---- インタラクター（実装）----
-
-type todoInteracter struct {
+// ---- インタラクター（実装） ----
+type todoInteractor struct {
 	gw appgateway.TodoGateway
 }
 
-func NewTodoInteracter(gw appgateway.TodoGateway) TodoUseCase {
-	return &todoInteracter{gw: gw}
+// コンストラクタ
+func NewTodoInteractor(gw appgateway.TodoGateway) TodoUseCase {
+	return &todoInteractor{gw: gw}
 }
 
-func (uc *todoInteracter) GetByID(id string) (*domain.Todo, error) {
+// TODOの取得、作成、更新、削除などのビジネスロジックを実装
+func (uc *todoInteractor) GetByID(id string) (*domain.Todo, error) {
 	todo, err := uc.gw.FindByID(id)
 	if err != nil {
 		return nil, err
@@ -49,27 +50,27 @@ func (uc *todoInteracter) GetByID(id string) (*domain.Todo, error) {
 	return todo, nil
 }
 
-func (uc *todoInteracter) ListByUser(userID string) ([]*domain.Todo, error) {
+func (uc *todoInteractor) ListByUser(userID string) ([]*domain.Todo, error) {
 	return uc.gw.FindByUserID(userID)
 }
 
-func (uc *todoInteracter) ListByCategory(userID, categoryID string) ([]*domain.Todo, error) {
+func (uc *todoInteractor) ListByCategory(userID, categoryID string) ([]*domain.Todo, error) {
 	return uc.gw.FindByCategory(userID, categoryID)
 }
 
-func (uc *todoInteracter) ListPending(userID string) ([]*domain.Todo, error) {
+func (uc *todoInteractor) ListPending(userID string) ([]*domain.Todo, error) {
 	return uc.gw.FindPending(userID)
 }
 
-func (uc *todoInteracter) ListCompleted(userID string) ([]*domain.Todo, error) {
+func (uc *todoInteractor) ListCompleted(userID string) ([]*domain.Todo, error) {
 	return uc.gw.FindCompleted(userID)
 }
 
-func (uc *todoInteracter) Search(userID, query string) ([]*domain.Todo, error) {
+func (uc *todoInteractor) Search(userID, query string) ([]*domain.Todo, error) {
 	return uc.gw.Search(userID, query)
 }
 
-func (uc *todoInteracter) Create(input dto.CreateTodoInput) (*domain.Todo, error) {
+func (uc *todoInteractor) Create(input dto.CreateTodoInput) (*domain.Todo, error) {
 	now := time.Now()
 	todo := &domain.Todo{
 		ID:         uuid.New().String(),
@@ -89,7 +90,7 @@ func (uc *todoInteracter) Create(input dto.CreateTodoInput) (*domain.Todo, error
 	return todo, nil
 }
 
-func (uc *todoInteracter) Update(input dto.UpdateTodoInput) (*domain.Todo, error) {
+func (uc *todoInteractor) Update(input dto.UpdateTodoInput) (*domain.Todo, error) {
 	todo, err := uc.gw.FindByID(input.ID)
 	if err != nil {
 		return nil, err
@@ -110,7 +111,7 @@ func (uc *todoInteracter) Update(input dto.UpdateTodoInput) (*domain.Todo, error
 	return todo, nil
 }
 
-func (uc *todoInteracter) Complete(id string) error {
+func (uc *todoInteractor) Complete(id string) error {
 	todo, err := uc.gw.FindByID(id)
 	if err != nil {
 		return err
@@ -124,7 +125,7 @@ func (uc *todoInteracter) Complete(id string) error {
 	return uc.gw.Update(todo)
 }
 
-func (uc *todoInteracter) Incomplete(id string) error {
+func (uc *todoInteractor) Incomplete(id string) error {
 	todo, err := uc.gw.FindByID(id)
 	if err != nil {
 		return err
@@ -137,7 +138,7 @@ func (uc *todoInteracter) Incomplete(id string) error {
 	return uc.gw.Update(todo)
 }
 
-func (uc *todoInteracter) Delete(id string) error {
+func (uc *todoInteractor) Delete(id string) error {
 	todo, err := uc.gw.FindByID(id)
 	if err != nil {
 		return err
@@ -148,7 +149,7 @@ func (uc *todoInteracter) Delete(id string) error {
 	return uc.gw.Delete(id)
 }
 
-func (uc *todoInteracter) TogglePin(id string) (*domain.Todo, error) {
+func (uc *todoInteractor) TogglePin(id string) (*domain.Todo, error) {
 	todo, err := uc.gw.FindByID(id)
 	if err != nil {
 		return nil, err

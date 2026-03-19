@@ -5,14 +5,14 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/google/uuid"
-	appgateway "tech-memo/internal/application/gateway"
 	"tech-memo/internal/application/dto"
+	appgateway "tech-memo/internal/application/gateway"
 	"tech-memo/internal/domain"
+
+	"github.com/google/uuid"
 )
 
 // ---- インターフェース ----
-
 type MemoUseCase interface {
 	GetByID(id string) (*domain.Memo, error)
 	ListByUser(userID string) ([]*domain.Memo, error)
@@ -24,17 +24,18 @@ type MemoUseCase interface {
 	TogglePin(id string) (*domain.Memo, error)
 }
 
-// ---- インタラクター（実装）----
-
-type memoInteracter struct {
+// ---- インタラクター（実装） ----
+type memoInteractor struct {
 	gw appgateway.MemoGateway
 }
 
-func NewMemoInteracter(gw appgateway.MemoGateway) MemoUseCase {
-	return &memoInteracter{gw: gw}
+// コンストラクタ
+func NewMemoInteractor(gw appgateway.MemoGateway) MemoUseCase {
+	return &memoInteractor{gw: gw}
 }
 
-func (uc *memoInteracter) GetByID(id string) (*domain.Memo, error) {
+// メモの取得、作成、更新、削除などのビジネスロジックを実装
+func (uc *memoInteractor) GetByID(id string) (*domain.Memo, error) {
 	memo, err := uc.gw.FindByID(id)
 	if err != nil {
 		return nil, err
@@ -45,19 +46,19 @@ func (uc *memoInteracter) GetByID(id string) (*domain.Memo, error) {
 	return memo, nil
 }
 
-func (uc *memoInteracter) ListByUser(userID string) ([]*domain.Memo, error) {
+func (uc *memoInteractor) ListByUser(userID string) ([]*domain.Memo, error) {
 	return uc.gw.FindByUserID(userID)
 }
 
-func (uc *memoInteracter) ListByCategory(userID, categoryID string) ([]*domain.Memo, error) {
+func (uc *memoInteractor) ListByCategory(userID, categoryID string) ([]*domain.Memo, error) {
 	return uc.gw.FindByCategory(userID, categoryID)
 }
 
-func (uc *memoInteracter) Search(userID, query string) ([]*domain.Memo, error) {
+func (uc *memoInteractor) Search(userID, query string) ([]*domain.Memo, error) {
 	return uc.gw.Search(userID, query)
 }
 
-func (uc *memoInteracter) Create(input dto.CreateMemoInput) (*domain.Memo, error) {
+func (uc *memoInteractor) Create(input dto.CreateMemoInput) (*domain.Memo, error) {
 	now := time.Now()
 	memo := &domain.Memo{
 		ID:         uuid.New().String(),
@@ -76,7 +77,7 @@ func (uc *memoInteracter) Create(input dto.CreateMemoInput) (*domain.Memo, error
 	return memo, nil
 }
 
-func (uc *memoInteracter) Update(input dto.UpdateMemoInput) (*domain.Memo, error) {
+func (uc *memoInteractor) Update(input dto.UpdateMemoInput) (*domain.Memo, error) {
 	memo, err := uc.gw.FindByID(input.ID)
 	if err != nil {
 		return nil, err
@@ -96,7 +97,7 @@ func (uc *memoInteracter) Update(input dto.UpdateMemoInput) (*domain.Memo, error
 	return memo, nil
 }
 
-func (uc *memoInteracter) Delete(id string) error {
+func (uc *memoInteractor) Delete(id string) error {
 	memo, err := uc.gw.FindByID(id)
 	if err != nil {
 		return err
@@ -107,7 +108,7 @@ func (uc *memoInteracter) Delete(id string) error {
 	return uc.gw.Delete(id)
 }
 
-func (uc *memoInteracter) TogglePin(id string) (*domain.Memo, error) {
+func (uc *memoInteractor) TogglePin(id string) (*domain.Memo, error) {
 	memo, err := uc.gw.FindByID(id)
 	if err != nil {
 		return nil, err

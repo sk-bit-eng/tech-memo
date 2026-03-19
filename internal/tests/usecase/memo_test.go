@@ -50,7 +50,7 @@ func (m *mockMemoGateway) Delete(id string) error {
 
 func TestMemoCreate_SetsIDAndTimestamps(t *testing.T) {
 	gw := newMockMemoGateway()
-	uc := usecase.NewMemoInteracter(gw)
+	uc := usecase.NewMemoInteractor(gw)
 
 	memo, err := uc.Create(dto.CreateMemoInput{
 		UserID:  "user1",
@@ -77,7 +77,7 @@ func TestMemoCreate_SetsIDAndTimestamps(t *testing.T) {
 
 func TestMemoGetByID_NotFound(t *testing.T) {
 	gw := newMockMemoGateway()
-	uc := usecase.NewMemoInteracter(gw)
+	uc := usecase.NewMemoInteractor(gw)
 
 	_, err := uc.GetByID("not-exist")
 
@@ -88,7 +88,7 @@ func TestMemoGetByID_NotFound(t *testing.T) {
 
 func TestMemoDelete_NotFound(t *testing.T) {
 	gw := newMockMemoGateway()
-	uc := usecase.NewMemoInteracter(gw)
+	uc := usecase.NewMemoInteractor(gw)
 
 	err := uc.Delete("not-exist")
 
@@ -100,7 +100,7 @@ func TestMemoDelete_NotFound(t *testing.T) {
 func TestMemoDelete_CallsGateway(t *testing.T) {
 	gw := newMockMemoGateway()
 	gw.memos["memo1"] = &domain.Memo{ID: "memo1"}
-	uc := usecase.NewMemoInteracter(gw)
+	uc := usecase.NewMemoInteractor(gw)
 
 	err := uc.Delete("memo1")
 
@@ -115,7 +115,7 @@ func TestMemoDelete_CallsGateway(t *testing.T) {
 func TestMemoTogglePin_FlipsIsPinned(t *testing.T) {
 	gw := newMockMemoGateway()
 	gw.memos["memo1"] = &domain.Memo{ID: "memo1", IsPinned: false}
-	uc := usecase.NewMemoInteracter(gw)
+	uc := usecase.NewMemoInteractor(gw)
 
 	memo, err := uc.TogglePin("memo1")
 
@@ -129,7 +129,7 @@ func TestMemoTogglePin_FlipsIsPinned(t *testing.T) {
 
 func TestMemoUpdate_NotFound(t *testing.T) {
 	gw := newMockMemoGateway()
-	uc := usecase.NewMemoInteracter(gw)
+	uc := usecase.NewMemoInteractor(gw)
 
 	_, err := uc.Update(dto.UpdateMemoInput{ID: "not-exist"})
 

@@ -21,7 +21,7 @@ func newMockTodoGateway() *mockTodoGateway {
 	return &mockTodoGateway{todos: make(map[string]*domain.Todo)}
 }
 
-func (m *mockTodoGateway) FindByID(id string) (*domain.Todo, error) { return m.todos[id], nil }
+func (m *mockTodoGateway) FindByID(id string) (*domain.Todo, error)           { return m.todos[id], nil }
 func (m *mockTodoGateway) FindByUserID(userID string) ([]*domain.Todo, error) { return nil, nil }
 func (m *mockTodoGateway) FindByCategory(userID, categoryID string) ([]*domain.Todo, error) {
 	return nil, nil
@@ -48,7 +48,7 @@ func (m *mockTodoGateway) Delete(id string) error {
 
 func TestTodoCreate_SetsIDAndTimestamps(t *testing.T) {
 	gw := newMockTodoGateway()
-	uc := usecase.NewTodoInteracter(gw)
+	uc := usecase.NewTodoInteractor(gw)
 
 	todo, err := uc.Create(dto.CreateTodoInput{
 		UserID:  "user1",
@@ -70,7 +70,7 @@ func TestTodoCreate_SetsIDAndTimestamps(t *testing.T) {
 func TestTodoComplete_SetsCompletedAt(t *testing.T) {
 	gw := newMockTodoGateway()
 	gw.todos["todo1"] = &domain.Todo{ID: "todo1", CompletedAt: nil}
-	uc := usecase.NewTodoInteracter(gw)
+	uc := usecase.NewTodoInteractor(gw)
 
 	err := uc.Complete("todo1")
 
@@ -86,7 +86,7 @@ func TestTodoComplete_SetsCompletedAt(t *testing.T) {
 func TestTodoIncomplete_ClearsCompletedAt(t *testing.T) {
 	gw := newMockTodoGateway()
 	gw.todos["todo1"] = &domain.Todo{ID: "todo1"}
-	uc := usecase.NewTodoInteracter(gw)
+	uc := usecase.NewTodoInteractor(gw)
 	_ = uc.Complete("todo1")
 
 	err := uc.Incomplete("todo1")
@@ -103,7 +103,7 @@ func TestTodoIncomplete_ClearsCompletedAt(t *testing.T) {
 func TestTodoTogglePin_FlipsIsPinned(t *testing.T) {
 	gw := newMockTodoGateway()
 	gw.todos["todo1"] = &domain.Todo{ID: "todo1", IsPinned: false}
-	uc := usecase.NewTodoInteracter(gw)
+	uc := usecase.NewTodoInteractor(gw)
 
 	todo, err := uc.TogglePin("todo1")
 
@@ -117,7 +117,7 @@ func TestTodoTogglePin_FlipsIsPinned(t *testing.T) {
 
 func TestTodoDelete_NotFound(t *testing.T) {
 	gw := newMockTodoGateway()
-	uc := usecase.NewTodoInteracter(gw)
+	uc := usecase.NewTodoInteractor(gw)
 
 	err := uc.Delete("not-exist")
 
