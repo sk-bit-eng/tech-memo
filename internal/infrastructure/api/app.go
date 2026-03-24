@@ -1,29 +1,29 @@
 package api
 
 import (
-	"database/sql"
 	"net/http"
 	"os"
 
-	sqliteinfra "tech-memo/internal/infrastructure/persistence/sqlite"
+	sqlserverinfra "tech-memo/internal/infrastructure/persistence/sqlserver"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 func NewHandler() (http.Handler, error) {
-	dbPath := os.Getenv("DB_PATH")
-	if dbPath == "" {
-		dbPath = "tech-memo.db"
+	dsn := os.Getenv("DB_DSN")
+	if dsn == "" {
+		dsn = "sqlserver://localhost?database=techmemo"
 	}
 
-	db, err := sqliteinfra.Open(dbPath)
+	db, err := sqlserverinfra.Open(dsn)
 	if err != nil {
 		return nil, err
 	}
 	return newRouter(db), nil
 }
 
-func newRouter(db *sql.DB) http.Handler {
+func newRouter(db *gorm.DB) http.Handler {
 	r := gin.Default()
 
 	r.GET("/", func(c *gin.Context) {

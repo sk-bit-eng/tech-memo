@@ -1,152 +1,81 @@
+// internal/adapter/gateway/memo_gateway.go
 package gateway
 
 import (
-	"database/sql"
-	"encoding/json"
-	"fmt"
-	"time"
+	"errors"
 
+	"gorm.io/gorm"
+	"tech-memo/internal/adapter/gateway/model"
 	appgateway "tech-memo/internal/application/gateway"
 	"tech-memo/internal/domain"
 )
 
-var _ appgateway.MemoGateway = (*SQLiteMemoGateway)(nil)
+var _ appgateway.MemoGateway = (*GORMMemoGateway)(nil)
 
-type SQLiteMemoGateway struct {
-	db *sql.DB
+type GORMMemoGateway struct {
+	db *gorm.DB
 }
 
-func NewSQLiteMemoGateway(db *sql.DB) *SQLiteMemoGateway {
-	return &SQLiteMemoGateway{db: db}
+func NewGORMMemoGateway(db *gorm.DB) *GORMMemoGateway {
+	return &GORMMemoGateway{db: db}
 }
 
-func (g *SQLiteMemoGateway) FindByID(id string) (*domain.Memo, error) {
-	row := g.db.QueryRow(
-		`SELECT id, user_id, title, content, category_id, parameters, is_pinned, created_at, updated_at, deleted_at
-		 FROM memos WHERE id = ? AND deleted_at IS NULL`, id)
-	return scanMemo(row)
-}
-
-func (g *SQLiteMemoGateway) FindByUserID(userID string) ([]*domain.Memo, error) {
-	rows, err := g.db.Query(
-		`SELECT id, user_id, title, content, category_id, parameters, is_pinned, created_at, updated_at, deleted_at
-		 FROM memos WHERE user_id = ? AND deleted_at IS NULL ORDER BY updated_at DESC`, userID)
-	if err != nil {
+func (g *GORMMemoGateway) FindByID(id string) (*domain.Memo, error) {
+	var m model.MemoModel
+	if err := g.db.First(&m, "id = ?", id).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
 		return nil, err
 	}
-	defer rows.Close()
-	return scanMemos(rows)
+	return m.ToDomain(), nil
 }
 
-func (g *SQLiteMemoGateway) FindByCategory(userID, categoryID string) ([]*domain.Memo, error) {
-	rows, err := g.db.Query(
-		`SELECT id, user_id, title, content, category_id, parameters, is_pinned, created_at, updated_at, deleted_at
-		 FROM memos WHERE user_id = ? AND category_id = ? AND deleted_at IS NULL ORDER BY updated_at DESC`,
-		userID, categoryID)
-	if err != nil {
+func (g *GORMMemoGateway) FindByUserID(userID string) ([]*domain.Memo, error) {
+	var models []model.MemoModel
+	if err := g.db.Where("user_id = ?", userID).Order("updated_at desc").Find(&models).Error; err != nil {
 		return nil, err
 	}
-	defer rows.Close()
-	return scanMemos(rows)
+	return toMemos(models), nil
 }
 
-func (g *SQLiteMemoGateway) Search(userID, query string) ([]*domain.Memo, error) {
+func (g *GORMMemoGateway) FindByCategory(userID, categoryID string) ([]*domain.Memo, error) {
+	var models []model.MemoModel
+	if err := g.db.Where("user_id = ? AND category_id = ?", userID, categoryID).
+		Order("updated_at desc").Find(&models).Error; err != nil {
+		return nil, err
+	}
+	return toMemos(models), nil
+}
+
+func (g *GORMMemoGateway) Search(userID, query string) ([]*domain.Memo, error) {
+	var models []model.MemoModel
 	like := "%" + query + "%"
-	rows, err := g.db.Query(
-		`SELECT id, user_id, title, content, category_id, parameters, is_pinned, created_at, updated_at, deleted_at
-		 FROM memos WHERE user_id = ? AND (title LIKE ? OR content LIKE ?) AND deleted_at IS NULL ORDER BY updated_at DESC`,
-		userID, like, like)
-	if err != nil {
+	if err := g.db.Where("user_id = ? AND (title LIKE ? OR content LIKE ?)", userID, like, like).
+		Order("updated_at desc").Find(&models).Error; err != nil {
 		return nil, err
 	}
-	defer rows.Close()
-	return scanMemos(rows)
+	return toMemos(models), nil
 }
 
-func (g *SQLiteMemoGateway) Save(memo *domain.Memo) error {
-	params, err := json.Marshal(memo.Parameters)
-	if err != nil {
-		return fmt.Errorf("marshal parameters: %w", err)
-	}
-	_, err = g.db.Exec(
-		`INSERT INTO memos (id, user_id, title, content, category_id, parameters, is_pinned, created_at, updated_at)
-		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-		memo.ID, memo.UserID, memo.Title, memo.Content, memo.CategoryID,
-		string(params), boolToInt(memo.IsPinned), memo.CreatedAt, memo.UpdatedAt)
-	return err
+func (g *GORMMemoGateway) Save(memo *domain.Memo) error {
+	m := model.FromMemo(memo)
+	return g.db.Create(&m).Error
 }
 
-func (g *SQLiteMemoGateway) Update(memo *domain.Memo) error {
-	params, err := json.Marshal(memo.Parameters)
-	if err != nil {
-		return fmt.Errorf("marshal parameters: %w", err)
-	}
-	_, err = g.db.Exec(
-		`UPDATE memos SET title=?, content=?, category_id=?, parameters=?, is_pinned=?, updated_at=?
-		 WHERE id=? AND deleted_at IS NULL`,
-		memo.Title, memo.Content, memo.CategoryID, string(params),
-		boolToInt(memo.IsPinned), memo.UpdatedAt, memo.ID)
-	return err
+func (g *GORMMemoGateway) Update(memo *domain.Memo) error {
+	m := model.FromMemo(memo)
+	return g.db.Save(&m).Error
 }
 
-func (g *SQLiteMemoGateway) Delete(id string) error {
-	_, err := g.db.Exec(
-		`UPDATE memos SET deleted_at=? WHERE id=? AND deleted_at IS NULL`,
-		time.Now(), id)
-	return err
+func (g *GORMMemoGateway) Delete(id string) error {
+	return g.db.Where("id = ?", id).Delete(&model.MemoModel{}).Error
 }
 
-func scanMemo(row *sql.Row) (*domain.Memo, error) {
-	var m domain.Memo
-	var paramsJSON string
-	var deletedAt sql.NullTime
-	var isPinned int
-
-	err := row.Scan(&m.ID, &m.UserID, &m.Title, &m.Content, &m.CategoryID,
-		&paramsJSON, &isPinned, &m.CreatedAt, &m.UpdatedAt, &deletedAt)
-	if err == sql.ErrNoRows {
-		return nil, nil
+func toMemos(models []model.MemoModel) []*domain.Memo {
+	memos := make([]*domain.Memo, len(models))
+	for i, m := range models {
+		memos[i] = m.ToDomain()
 	}
-	if err != nil {
-		return nil, err
-	}
-	if err := json.Unmarshal([]byte(paramsJSON), &m.Parameters); err != nil {
-		return nil, fmt.Errorf("unmarshal parameters: %w", err)
-	}
-	m.IsPinned = isPinned == 1
-	if deletedAt.Valid {
-		m.DeletedAt = &deletedAt.Time
-	}
-	return &m, nil
-}
-
-func scanMemos(rows *sql.Rows) ([]*domain.Memo, error) {
-	var memos []*domain.Memo
-	for rows.Next() {
-		var m domain.Memo
-		var paramsJSON string
-		var deletedAt sql.NullTime
-		var isPinned int
-
-		if err := rows.Scan(&m.ID, &m.UserID, &m.Title, &m.Content, &m.CategoryID,
-			&paramsJSON, &isPinned, &m.CreatedAt, &m.UpdatedAt, &deletedAt); err != nil {
-			return nil, err
-		}
-		if err := json.Unmarshal([]byte(paramsJSON), &m.Parameters); err != nil {
-			return nil, fmt.Errorf("unmarshal parameters: %w", err)
-		}
-		m.IsPinned = isPinned == 1
-		if deletedAt.Valid {
-			m.DeletedAt = &deletedAt.Time
-		}
-		memos = append(memos, &m)
-	}
-	return memos, rows.Err()
-}
-
-func boolToInt(b bool) int {
-	if b {
-		return 1
-	}
-	return 0
+	return memos
 }
