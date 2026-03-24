@@ -15,7 +15,7 @@ func setupMemoGW(t *testing.T) *adaptergateway.GORMMemoGateway {
 	t.Helper()
 	dsn := os.Getenv("DB_DSN")
 	if dsn == "" {
-		dsn = "sqlserver://sa:TechMemo123!@localhost:1433?database=tech_memo"
+		dsn = "sqlserver://sa:Test@1234@localhost:1433?database=tech_memo"
 	}
 	db, err := sqlserverinfra.Open(dsn)
 	if err != nil {

@@ -5,18 +5,19 @@ import (
 	"encoding/json"
 	"time"
 
-	"gorm.io/gorm"
 	"tech-memo/internal/domain"
+
+	"gorm.io/gorm"
 )
 
 type TodoModel struct {
-	ID          string         `gorm:"primaryKey"`
-	UserID      string         `gorm:"not null;index"`
-	Title       string         `gorm:"not null"`
-	Content     string         `gorm:"type:nvarchar(max);not null"`
-	CategoryID  string         `gorm:"default:''"`
-	Parameters  string         `gorm:"type:nvarchar(max);default:'[]'"`
-	IsPinned    bool           `gorm:"default:false"`
+	ID          string `gorm:"primaryKey"`
+	UserID      string `gorm:"not null;index"`
+	Title       string `gorm:"not null"`
+	Content     string `gorm:"type:nvarchar(512);not null"`
+	CategoryID  string `gorm:"default:''"`
+	Parameters  string `gorm:"type:nvarchar(512);default:'[]'"`
+	IsPinned    bool   `gorm:"default:false"`
 	DueAt       *time.Time
 	CompletedAt *time.Time
 	CreatedAt   time.Time

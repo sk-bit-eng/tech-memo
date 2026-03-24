@@ -1,9 +1,9 @@
 services:
   sqlserver:
-    image: mcr.microsoft.com/mssql/server:2022-latest
+    image: mcr.microsoft.com/mssql/server:2025-latest
     container_name: tech-memo-sqlserver
     environment:
-      SA_PASSWORD: "TechMemo123!"
+      SA_PASSWORD: "Test@1234"
       ACCEPT_EULA: "Y"
       MSSQL_DB: tech_memo
     ports:

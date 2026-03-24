@@ -13,7 +13,7 @@ import (
 func NewHandler() (http.Handler, error) {
 	dsn := os.Getenv("DB_DSN")
 	if dsn == "" {
-		dsn = "sqlserver://localhost?database=techmemo"
+		dsn = "sqlserver://sa:Test@1234@localhost:1433?database=tech_memo"
 	}
 
 	db, err := sqlserverinfra.Open(dsn)
