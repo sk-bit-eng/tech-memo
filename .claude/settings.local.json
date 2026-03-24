@@ -9,7 +9,17 @@
       "Read(//c/Users/PC1043/Documents/tech-memo/**)",
       "Bash(done)",
       "Bash(go get:*)",
-      "Bash(go test:*)"
+      "Bash(go test:*)",
+      "Bash(gcc --version)",
+      "Read(//c/mingw64/**)",
+      "Bash(ls /c/TDM-GCC*/bin/gcc*)",
+      "Read(//c/msys64/mingw64/**)",
+      "Bash(where gcc:*)",
+      "Bash(powershell.exe -Command \"Get-Command gcc -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source\")",
+      "Read(//c//**)",
+      "Bash(go build:*)",
+      "Bash(go mod:*)",
+      "Bash(go vet:*)"
     ]
   }
 }
