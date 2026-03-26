@@ -6,11 +6,11 @@ import (
 
 	"gorm.io/gorm"
 	"tech-memo/internal/adapter/gateway/model"
-	appgateway "tech-memo/internal/application/gateway"
+	memogtw "tech-memo/internal/application/gateway/memo"
 	"tech-memo/internal/domain"
 )
 
-var _ appgateway.MemoGateway = (*GORMMemoGateway)(nil)
+var _ memogtw.Repository = (*GORMMemoGateway)(nil)
 
 type GORMMemoGateway struct {
 	db *gorm.DB
