@@ -3,7 +3,7 @@ package todo
 import (
 	"testing"
 
-	"tech-memo/internal/application/dto"
+	tododto "tech-memo/internal/application/dto/todo"
 	"tech-memo/internal/domain"
 )
 
@@ -48,7 +48,7 @@ func TestCreate_SetsIDAndTimestamps(t *testing.T) {
 	gw := newMockRepository()
 	uc := NewInteractor(gw)
 
-	todo, err := uc.Create(dto.CreateTodoInput{
+	todo, err := uc.Create(tododto.CreateInput{
 		UserID:  "user1",
 		Title:   "タスク",
 		Content: "内容",

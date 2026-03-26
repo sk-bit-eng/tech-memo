@@ -9,7 +9,10 @@
       "Read(//c/Users/PC1043/Documents/tech-memo/**)",
       "Bash(done)",
       "Bash(go get:*)",
-      "Bash(go test:*)"
+      "Bash(go test:*)",
+      "Bash(gh pr:*)",
+      "Bash(gh api:*)",
+      "Bash(go build:*)"
     ]
   }
 }

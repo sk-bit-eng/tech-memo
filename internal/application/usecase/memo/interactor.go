@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"tech-memo/internal/application/dto"
+	memodto "tech-memo/internal/application/dto/memo"
 	memogtw "tech-memo/internal/application/gateway/memo"
 	"tech-memo/internal/domain"
 
@@ -42,7 +42,7 @@ func (uc *interactor) Search(userID, query string) ([]*domain.Memo, error) {
 	return uc.gw.Search(userID, query)
 }
 
-func (uc *interactor) Create(input dto.CreateMemoInput) (*domain.Memo, error) {
+func (uc *interactor) Create(input memodto.CreateInput) (*domain.Memo, error) {
 	now := time.Now()
 	memo := &domain.Memo{
 		ID:         uuid.New().String(),
@@ -61,7 +61,7 @@ func (uc *interactor) Create(input dto.CreateMemoInput) (*domain.Memo, error) {
 	return memo, nil
 }
 
-func (uc *interactor) Update(input dto.UpdateMemoInput) (*domain.Memo, error) {
+func (uc *interactor) Update(input memodto.UpdateInput) (*domain.Memo, error) {
 	memo, err := uc.gw.FindByID(input.ID)
 	if err != nil {
 		return nil, err

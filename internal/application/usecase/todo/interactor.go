@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"tech-memo/internal/application/dto"
+	tododto "tech-memo/internal/application/dto/todo"
 	todogtw "tech-memo/internal/application/gateway/todo"
 	"tech-memo/internal/domain"
 
@@ -50,7 +50,7 @@ func (uc *interactor) Search(userID, query string) ([]*domain.Todo, error) {
 	return uc.gw.Search(userID, query)
 }
 
-func (uc *interactor) Create(input dto.CreateTodoInput) (*domain.Todo, error) {
+func (uc *interactor) Create(input tododto.CreateInput) (*domain.Todo, error) {
 	now := time.Now()
 	todo := &domain.Todo{
 		ID:         uuid.New().String(),
@@ -70,7 +70,7 @@ func (uc *interactor) Create(input dto.CreateTodoInput) (*domain.Todo, error) {
 	return todo, nil
 }
 
-func (uc *interactor) Update(input dto.UpdateTodoInput) (*domain.Todo, error) {
+func (uc *interactor) Update(input tododto.UpdateInput) (*domain.Todo, error) {
 	todo, err := uc.gw.FindByID(input.ID)
 	if err != nil {
 		return nil, err

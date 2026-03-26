@@ -3,7 +3,7 @@ package memo
 import (
 	"testing"
 
-	"tech-memo/internal/application/dto"
+	memodto "tech-memo/internal/application/dto/memo"
 	"tech-memo/internal/domain"
 )
 
@@ -48,7 +48,7 @@ func TestCreate_SetsIDAndTimestamps(t *testing.T) {
 	gw := newMockRepository()
 	uc := NewInteractor(gw)
 
-	memo, err := uc.Create(dto.CreateMemoInput{
+	memo, err := uc.Create(memodto.CreateInput{
 		UserID:  "user1",
 		Title:   "タイトル",
 		Content: "内容",
@@ -127,7 +127,7 @@ func TestUpdate_NotFound(t *testing.T) {
 	gw := newMockRepository()
 	uc := NewInteractor(gw)
 
-	_, err := uc.Update(dto.UpdateMemoInput{ID: "not-exist"})
+	_, err := uc.Update(memodto.UpdateInput{ID: "not-exist"})
 
 	if err == nil {
 		t.Error("expected error for not found")

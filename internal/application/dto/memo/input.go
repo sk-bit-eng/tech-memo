@@ -1,9 +1,8 @@
-// internal/application/dto/memo_input.go
-package dto
+package memo
 
 import "tech-memo/internal/domain"
 
-type CreateMemoInput struct {
+type CreateInput struct {
 	UserID     string
 	Title      string
 	Content    string
@@ -12,7 +11,7 @@ type CreateMemoInput struct {
 	IsPinned   bool
 }
 
-type UpdateMemoInput struct {
+type UpdateInput struct {
 	ID         string
 	Title      string
 	Content    string

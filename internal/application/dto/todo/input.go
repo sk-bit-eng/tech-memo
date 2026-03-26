@@ -1,5 +1,4 @@
-// internal/application/dto/todo_input.go
-package dto
+package todo
 
 import (
 	"time"
@@ -7,7 +6,7 @@ import (
 	"tech-memo/internal/domain"
 )
 
-type CreateTodoInput struct {
+type CreateInput struct {
 	UserID     string
 	Title      string
 	Content    string
@@ -17,7 +16,7 @@ type CreateTodoInput struct {
 	DueAt      *time.Time
 }
 
-type UpdateTodoInput struct {
+type UpdateInput struct {
 	ID         string
 	Title      string
 	Content    string
