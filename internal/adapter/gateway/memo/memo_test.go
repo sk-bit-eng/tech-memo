@@ -1,17 +1,15 @@
-// internal/tests/adapter/gateway/memo_gateway_test.go
-package gateway_test
+package memo
 
 import (
 	"os"
 	"testing"
 	"time"
 
-	adaptergateway "tech-memo/internal/adapter/gateway"
 	"tech-memo/internal/domain"
 	sqlserverinfra "tech-memo/internal/infrastructure/persistence/sqlserver"
 )
 
-func setupMemoGW(t *testing.T) *adaptergateway.GORMMemoGateway {
+func setup(t *testing.T) *Repository {
 	t.Helper()
 	dsn := os.Getenv("DB_DSN")
 	if dsn == "" {
@@ -21,24 +19,24 @@ func setupMemoGW(t *testing.T) *adaptergateway.GORMMemoGateway {
 	if err != nil {
 		t.Skipf("SQL Server unavailable: %v", err)
 	}
-	gw := adaptergateway.NewGORMMemoGateway(db)
+	r := NewRepository(db)
 	t.Cleanup(func() {
 		sqlDB, _ := db.DB()
 		sqlDB.Exec("DELETE FROM memos")
 	})
-	return gw
+	return r
 }
 
-func TestMemoGateway_SaveAndFindByID(t *testing.T) {
-	gw := setupMemoGW(t)
+func TestSaveAndFindByID(t *testing.T) {
+	r := setup(t)
 	memo := &domain.Memo{
 		ID: "memo-1", UserID: "user-1", Title: "テストメモ", Content: "内容",
 		CreatedAt: time.Now(), UpdatedAt: time.Now(),
 	}
-	if err := gw.Save(memo); err != nil {
+	if err := r.Save(memo); err != nil {
 		t.Fatalf("Save: %v", err)
 	}
-	got, err := gw.FindByID("memo-1")
+	got, err := r.FindByID("memo-1")
 	if err != nil {
 		t.Fatalf("FindByID: %v", err)
 	}
@@ -47,17 +45,17 @@ func TestMemoGateway_SaveAndFindByID(t *testing.T) {
 	}
 }
 
-func TestMemoGateway_Delete_SoftDelete(t *testing.T) {
-	gw := setupMemoGW(t)
+func TestDelete_SoftDelete(t *testing.T) {
+	r := setup(t)
 	memo := &domain.Memo{
 		ID: "memo-del", UserID: "u1", Title: "削除", Content: "",
 		CreatedAt: time.Now(), UpdatedAt: time.Now(),
 	}
-	_ = gw.Save(memo)
-	if err := gw.Delete("memo-del"); err != nil {
+	_ = r.Save(memo)
+	if err := r.Delete("memo-del"); err != nil {
 		t.Fatalf("Delete: %v", err)
 	}
-	got, err := gw.FindByID("memo-del")
+	got, err := r.FindByID("memo-del")
 	if err != nil {
 		t.Fatalf("FindByID after delete: %v", err)
 	}
@@ -66,16 +64,16 @@ func TestMemoGateway_Delete_SoftDelete(t *testing.T) {
 	}
 }
 
-func TestMemoGateway_Search(t *testing.T) {
-	gw := setupMemoGW(t)
+func TestSearch(t *testing.T) {
+	r := setup(t)
 	memos := []*domain.Memo{
 		{ID: "m1", UserID: "u1", Title: "Goチュートリアル", Content: "基礎", CreatedAt: time.Now(), UpdatedAt: time.Now()},
 		{ID: "m2", UserID: "u1", Title: "Python入門", Content: "基礎", CreatedAt: time.Now(), UpdatedAt: time.Now()},
 	}
 	for _, m := range memos {
-		_ = gw.Save(m)
+		_ = r.Save(m)
 	}
-	results, err := gw.Search("u1", "Go")
+	results, err := r.Search("u1", "Go")
 	if err != nil {
 		t.Fatalf("Search: %v", err)
 	}
