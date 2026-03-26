@@ -1,8 +1,8 @@
-package gateway
+package memo
 
 import "tech-memo/internal/domain"
 
-type MemoGateway interface {
+type Repository interface {
 	FindByID(id string) (*domain.Memo, error)
 	FindByUserID(userID string) ([]*domain.Memo, error)
 	FindByCategory(userID, categoryID string) ([]*domain.Memo, error)

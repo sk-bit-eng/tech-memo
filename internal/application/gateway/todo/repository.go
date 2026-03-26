@@ -1,8 +1,8 @@
-package gateway
+package todo
 
 import "tech-memo/internal/domain"
 
-type TodoGateway interface {
+type Repository interface {
 	FindByID(id string) (*domain.Todo, error)
 	FindByUserID(userID string) ([]*domain.Todo, error)
 	FindByCategory(userID, categoryID string) ([]*domain.Todo, error)
