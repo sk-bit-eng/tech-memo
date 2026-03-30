@@ -4,12 +4,16 @@ package sqlserver
 import (
 	"fmt"
 	"regexp"
+	"time"
 
 	"gorm.io/driver/sqlserver"
 	"gorm.io/gorm"
 	memo "tech-memo/internal/adapter/gateway/model/memo"
 	todo "tech-memo/internal/adapter/gateway/model/todo"
+	user "tech-memo/internal/adapter/gateway/model/user"
 )
+
+const testUserID = "test-user-001"
 
 func Open(dsn string) (*gorm.DB, error) {
 	if err := ensureDatabase(dsn); err != nil {
@@ -22,10 +26,15 @@ func Open(dsn string) (*gorm.DB, error) {
 	}
 
 	if err := db.AutoMigrate(
+		&user.UserModel{},
 		&memo.MemoModel{},
 		&todo.TodoModel{},
 	); err != nil {
 		return nil, fmt.Errorf("auto migrate: %w", err)
+	}
+
+	if err := seedUsers(db); err != nil {
+		return nil, fmt.Errorf("seed users: %w", err)
 	}
 
 	return db, nil
@@ -74,4 +83,25 @@ func extractDBName(dsn string) (string, string) {
 
 	masterDSN += sep + "database=master"
 	return dbName, masterDSN
+}
+
+func seedUsers(db *gorm.DB) error {
+	now := time.Now()
+	users := []user.UserModel{
+		{
+			ID:        testUserID,
+			Name:      "Test User",
+			Email:     "test-user-001@example.com",
+			CreatedAt: now,
+			UpdatedAt: now,
+		},
+	}
+
+	for _, u := range users {
+		if err := db.Where("id = ?", u.ID).FirstOrCreate(&u).Error; err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

@@ -10,6 +10,66 @@ services:
       - "1433:1433"
     volumes:
       - sqlserver_data:/var/opt/mssql
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$${SA_PASSWORD}\" -C -Q \"SELECT 1\" || exit 1",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  app:
+    build:
+      context: .
+    container_name: tech-memo-app
+    working_dir: /app
+    command: go run ./cmd/api
+    environment:
+      DB_DSN: sqlserver://sa:Test@1234@sqlserver:1433?database=tech_memo
+      PORT: "8080"
+      GOCACHE: /tmp/go-build-tech-memo
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    volumes:
+      - .:/app
+
+  seed:
+    build:
+      context: .
+    working_dir: /app
+    command: go run ./cmd/seed
+    environment:
+      DB_DSN: sqlserver://sa:Test@1234@sqlserver:1433?database=tech_memo
+      GOCACHE: /tmp/go-build-tech-memo
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    profiles:
+      - tools
+    volumes:
+      - .:/app
+
+  test:
+    build:
+      context: .
+    working_dir: /app
+    command: go test ./...
+    environment:
+      DB_DSN: sqlserver://sa:Test@1234@sqlserver:1433?database=tech_memo
+      GOCACHE: /tmp/go-build-tech-memo
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    profiles:
+      - test
+    volumes:
+      - .:/app
 
 volumes:
   sqlserver_data:
