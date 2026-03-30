@@ -1,4 +1,4 @@
-// internal/adapter/gateway/model/memo_model.go
+// internal/adapter/gateway/model/memo/model.go
 package model
 
 import (

@@ -3,10 +3,11 @@ package todo
 import (
 	"errors"
 
-	"gorm.io/gorm"
-	"tech-memo/internal/adapter/gateway/model"
+	model "tech-memo/internal/adapter/gateway/model/todo"
 	todogtw "tech-memo/internal/application/gateway/todo"
 	"tech-memo/internal/domain"
+
+	"gorm.io/gorm"
 )
 
 var _ todogtw.Repository = (*Repository)(nil)

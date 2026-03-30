@@ -81,3 +81,75 @@ func TestSearch(t *testing.T) {
 		t.Errorf("Search結果: got %d, want 1", len(results))
 	}
 }
+
+func TestFindByUserIDAndCategory(t *testing.T) {
+	r := setup(t)
+	memos := []*domain.Memo{
+		{ID: "u1-1", UserID: "u1", Title: "A", Content: "1", CategoryID: "c1", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{ID: "u1-2", UserID: "u1", Title: "B", Content: "2", CategoryID: "c2", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{ID: "u2-1", UserID: "u2", Title: "C", Content: "3", CategoryID: "c1", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+	}
+	for _, m := range memos {
+		_ = r.Save(m)
+	}
+	gotByUser, err := r.FindByUserID("u1")
+	if err != nil {
+		t.Fatalf("FindByUserID: %v", err)
+	}
+	if len(gotByUser) != 2 {
+		t.Fatalf("FindByUserID: got %d, want 2", len(gotByUser))
+	}
+
+	gotByCategory, err := r.FindByCategory("u1", "c2")
+	if err != nil {
+		t.Fatalf("FindByCategory: %v", err)
+	}
+	if len(gotByCategory) != 1 {
+		t.Fatalf("FindByCategory: got %d, want 1", len(gotByCategory))
+	}
+	if gotByCategory[0].ID != "u1-2" {
+		t.Errorf("FindByCategory: expected u1-2, got %s", gotByCategory[0].ID)
+	}
+}
+
+func TestUpdateAndSoftDeleteAndFindByID(t *testing.T) {
+	r := setup(t)
+	memo := &domain.Memo{ID: "memo-upd", UserID: "u9", Title: "Old", Content: "C", CreatedAt: time.Now(), UpdatedAt: time.Now()}
+	if err := r.Save(memo); err != nil {
+		t.Fatalf("Save: %v", err)
+	}
+
+	memo.Title = "New"
+	if err := r.Update(memo); err != nil {
+		t.Fatalf("Update: %v", err)
+	}
+	got, err := r.FindByID("memo-upd")
+	if err != nil {
+		t.Fatalf("FindByID: %v", err)
+	}
+	if got == nil || got.Title != "New" {
+		t.Fatalf("Update反映: got %v", got)
+	}
+
+	if err := r.Delete("memo-upd"); err != nil {
+		t.Fatalf("Delete: %v", err)
+	}
+	gotDeleted, err := r.FindByID("memo-upd")
+	if err != nil {
+		t.Fatalf("FindByID after delete: %v", err)
+	}
+	if gotDeleted != nil {
+		t.Fatalf("soft delete後にnil期待: got %+v", gotDeleted)
+	}
+}
+
+func TestFindByIDNotFound(t *testing.T) {
+	r := setup(t)
+	got, err := r.FindByID("unknown")
+	if err != nil {
+		t.Fatalf("FindByID unknown: %v", err)
+	}
+	if got != nil {
+		t.Fatal("FindByID unknown が nil であること")
+	}
+}

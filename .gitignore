@@ -14,3 +14,6 @@ tech-memo.exe
 
 # Local docs (plans, memos)
 docs/
+
+# Local seed command
+cmd/seed/

@@ -3,10 +3,11 @@ package memo
 import (
 	"errors"
 
-	"gorm.io/gorm"
-	"tech-memo/internal/adapter/gateway/model"
+	model "tech-memo/internal/adapter/gateway/model/memo"
 	memogtw "tech-memo/internal/application/gateway/memo"
 	"tech-memo/internal/domain"
+
+	"gorm.io/gorm"
 )
 
 var _ memogtw.Repository = (*Repository)(nil)
