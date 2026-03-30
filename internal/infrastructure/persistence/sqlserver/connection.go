@@ -7,7 +7,8 @@ import (
 
 	"gorm.io/driver/sqlserver"
 	"gorm.io/gorm"
-	"tech-memo/internal/adapter/gateway/model"
+	memo "tech-memo/internal/adapter/gateway/model/memo"
+	todo "tech-memo/internal/adapter/gateway/model/todo"
 )
 
 func Open(dsn string) (*gorm.DB, error) {
@@ -21,8 +22,8 @@ func Open(dsn string) (*gorm.DB, error) {
 	}
 
 	if err := db.AutoMigrate(
-		&model.MemoModel{},
-		&model.TodoModel{},
+		&memo.MemoModel{},
+		&todo.TodoModel{},
 	); err != nil {
 		return nil, fmt.Errorf("auto migrate: %w", err)
 	}
@@ -60,9 +61,17 @@ func extractDBName(dsn string) (string, string) {
 	}
 	dbName := m[1]
 	masterDSN := re.ReplaceAllString(dsn, "")
-	masterDSN += "&database=master"
-	// 先頭が & になるケースを修正
-	re2 := regexp.MustCompile(`\?&`)
-	masterDSN = re2.ReplaceAllString(masterDSN, "?")
+
+	// 質問符がない場合は ? を起点にし、あれば & を追加
+	sep := "?"
+	if regexp.MustCompile(`\?`).MatchString(masterDSN) {
+		sep = "&"
+	}
+
+	masterDSN = regexp.MustCompile(`[\?&]database=[^&]*`).ReplaceAllString(masterDSN, "")
+	masterDSN = regexp.MustCompile(`\?&|&&`).ReplaceAllString(masterDSN, "?")
+	masterDSN = regexp.MustCompile(`\?$|&$`).ReplaceAllString(masterDSN, "")
+
+	masterDSN += sep + "database=master"
 	return dbName, masterDSN
 }

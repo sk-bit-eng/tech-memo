@@ -44,7 +44,6 @@ func newRouter(db *gorm.DB) http.Handler {
 		c.JSON(http.StatusOK, gin.H{"message": "teck-memo server is running"})
 	})
 
-	// Memo routes
 	memos := r.Group("/memos")
 	{
 		memos.POST("", memoCtrl.Create)
@@ -67,7 +66,6 @@ func newRouter(db *gorm.DB) http.Handler {
 		users.GET("/todos/category/:categoryID", todoCtrl.ListByCategory)
 	}
 
-	// Todo routes
 	todos := r.Group("/todos")
 	{
 		todos.POST("", todoCtrl.Create)
